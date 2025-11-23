@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Students</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Student List</h2>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Roll No</th>
+        </tr>
+
+        {% for s in students %}
+        <tr>
+            <td>{{ s[0] }}</td>
+            <td>{{ s[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <a class="link" href="/">Add New Student</a>
+</div>
+
+</body>
+</html>
