@@ -1,0 +1,43 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment files (we copy manually if needed)
+.env
+*.env
+
+# Git files
+.git/
+.gitignore
+
+# Docker files not needed inside image
+.dockerignore
+
+# IDE folders
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+*.tmp
+
+# Local databases or instance files
+instance/
+*.db
+*.sqlite3
+
+# Node (if frontend exists)
+node_modules/
+build/
+dist/
