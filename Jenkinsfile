@@ -48,8 +48,23 @@ pipeline {
                         docker pull $DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}
                         docker stop ebs_container || true
                         docker rm ebs_container || true
-                        docker run -d --name ebs_container -p 5000:5000 $DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}
                     """
+                     withCredentials([
+            string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
+            string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+            string(credentialsId: 'DB_PASS', variable: 'DB_PASS'),
+            
+        ]) {
+            sh """
+                docker run -d \
+                -p 5000:5000 \
+                -e DB_HOST=$DB_HOST \
+                -e DB_USER=$DB_USER \
+                -e DB_PASS=$DB_PASS \
+                -e DB_NAME=studentdb \
+                ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
+            """
+        }
                 }
             }
         }
