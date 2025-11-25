@@ -29,6 +29,7 @@ pipeline {
         stage("Build Docker Image") {
             steps {
                 sh """
+                    docker images
                     docker build -t $DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG} .
                 """
             }
