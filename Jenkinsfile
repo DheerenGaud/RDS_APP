@@ -53,6 +53,12 @@ pipeline {
                         docker stop ebs_container || true
                         docker rm ebs_container || true
 
+                         sh '''
+               echo "DB_HOST length: ${#DB_HOST}"
+               echo "DB_USER length: ${#DB_USER}"
+               echo "DB_PASS length: ${#DB_PASS}"
+                        '''
+
                         echo ">>> Running new container"
                         docker run -d \
                             --name ebs_container \
