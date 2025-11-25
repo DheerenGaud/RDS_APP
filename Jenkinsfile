@@ -11,7 +11,7 @@ pipeline {
         stage("Load Secrets") {
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'dockerCredentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_USER'),
+                    usernamePassword(credentialsId: 'dockerCredentials', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS'),
                     // string(credentialsId: 'ec2-public-ip', variable: 'EC2_IP'),
                     // sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_KEYFILE', usernameVariable: 'EC2_SSH_USER')
                 ]) {
