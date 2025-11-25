@@ -17,20 +17,20 @@ pipeline {
         stage("Build & Push Docker Image") {
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'dockerCredentials', 
-                                     usernameVariable: 'DOCKERHUB_USER', 
+                    usernamePassword(credentialsId: 'dockerCredentials',
+                                     usernameVariable: 'DOCKERHUB_USER',
                                      passwordVariable: 'DOCKERHUB_PASS')
                 ]) {
 
                     sh """
-                        echo ">>> Logging in to Docker Hub"
-                        echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
+                        echo ">>> Logging into Docker Hub"
+                        echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
 
                         echo ">>> Building Image"
-                        docker build -t $DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG} .
+                        docker build -t "$DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}" .
 
-                        echo ">>> Pushing Image"
-                        docker push $DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}
+                        echo ">>> Pushing Image to Docker Hub"
+                        docker push "$DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}"
                     """
                 }
             }
@@ -38,33 +38,31 @@ pipeline {
 
         stage("Deploy") {
             steps {
+                // DB credentials only
                 withCredentials([
-                    usernamePassword(credentialsId: 'dockerCredentials', 
-                                     usernameVariable: 'DOCKERHUB_USER', 
-                                     passwordVariable: 'DOCKERHUB_PASS')
+                    string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
+                    string(credentialsId: 'DB_USER', variable: 'DB_USER'),
+                    string(credentialsId: 'DB_PASS', variable: 'DB_PASS')
                 ]) {
 
                     sh """
-                        docker pull $DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}
+                        echo ">>> Pulling latest image"
+                        docker pull dheerengaud/${DOCKERHUB_REPO}:${IMAGE_TAG}
+
+                        echo ">>> Stopping old container"
                         docker stop ebs_container || true
                         docker rm ebs_container || true
+
+                        echo ">>> Running new container"
+                        docker run -d \
+                            --name ebs_container \
+                            -p 5000:5000 \
+                            -e DB_HOST=$DB_HOST \
+                            -e DB_USER=$DB_USER \
+                            -e DB_PASS=$DB_PASS \
+                            -e DB_NAME=studentdb \
+                            dheerengaud/${DOCKERHUB_REPO}:${IMAGE_TAG}
                     """
-                     withCredentials([
-            string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
-            string(credentialsId: 'DB_USER', variable: 'DB_USER'),
-            string(credentialsId: 'DB_PASS', variable: 'DB_PASS'),
-            
-        ]) {
-            sh """
-                docker run -d \
-                -p 5000:5000 \
-                -e DB_HOST=$DB_HOST \
-                -e DB_USER=$DB_USER \
-                -e DB_PASS=$DB_PASS \
-                -e DB_NAME=studentdb \
-                ${DOCKERHUB_USER}/${DOCKERHUB_REPO}:${IMAGE_TAG}
-            """
-        }
                 }
             }
         }
