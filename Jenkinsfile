@@ -66,7 +66,7 @@ pipeline {
                             -p 5000:5000 \
                             -e DB_HOST=$DB_HOST \
                             -e DB_USER=$DB_USER \
-                            -e DB_PASS=$DB_PASS \
+                            -e DB_PASSWORD=$DB_PASS \
                             -e DB_NAME=studentdb \
                             dheerengaud/${DOCKERHUB_REPO}:${IMAGE_TAG}
                     """
