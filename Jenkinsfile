@@ -1,10 +1,10 @@
-pipeline {
+\pipeline {
     agent any
 
     environment {
         DOCKERHUB_REPO = "student_db_app"
         IMAGE_TAG = "latest"
-        EC2_HOST = "ubuntu@YOUR_EC2_PUBLIC_IP"
+        PUBLIC_IP = "3.111.35.126"
     }
 
     stages {
@@ -48,7 +48,7 @@ pipeline {
                 ]) {
 
                     sh """
-                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY $EC2_USER@YOUR_EC2_PUBLIC_IP '
+                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY $EC2_USER@${PUBLIC_IP} '
                             echo ">>> Pulling latest image";
                             docker pull dheerengaud/student_db_app:latest;
 
