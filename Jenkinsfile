@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_REPO = "student_db_app"
         IMAGE_TAG = "latest"
+        EC2_HOST = "ubuntu@YOUR_EC2_PUBLIC_IP"
     }
 
     stages {
@@ -25,50 +26,46 @@ pipeline {
                 ]) {
 
                     sh """
-                        echo ">>> Logging into Docker Hub"
                         echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-
-                        echo ">>> Building Docker Image"
-                        docker build -t "$DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}" .
-
-                        echo ">>> Pushing Image to Docker Hub"
-                        docker push "$DOCKERHUB_USER/${DOCKERHUB_REPO}:${IMAGE_TAG}"
+                        docker build -t $DOCKERHUB_USER/$DOCKERHUB_REPO:$IMAGE_TAG .
+                        docker push $DOCKERHUB_USER/$DOCKERHUB_REPO:$IMAGE_TAG
                     """
                 }
             }
         }
 
-        stage("Deploy") {
+        stage("Deploy on EC2") {
             steps {
-
                 withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'ec2_ssh_key',
+                        keyFileVariable: 'EC2_KEY',
+                        usernameVariable: 'EC2_USER'
+                    ),
                     string(credentialsId: 'DB_HOST', variable: 'DB_HOST'),
                     string(credentialsId: 'DB_USER', variable: 'DB_USER'),
                     string(credentialsId: 'DB_PASS', variable: 'DB_PASS')
                 ]) {
 
                     sh """
-                        echo ">>> Pulling latest image"
-                        docker pull dheerengaud/${DOCKERHUB_REPO}:${IMAGE_TAG}
+                        ssh -o StrictHostKeyChecking=no -i $EC2_KEY $EC2_USER@YOUR_EC2_PUBLIC_IP '
+                            echo ">>> Pulling latest image";
+                            docker pull dheerengaud/student_db_app:latest;
 
-                        echo ">>> Stopping old container"
-                        docker stop ebs_container || true
-                        docker rm ebs_container || true
+                            echo ">>> Stopping old container";
+                            docker stop ebs_container || true;
+                            docker rm ebs_container || true;
 
-                        echo ">>> DEBUG ENV VALUES (LENGTH ONLY)"
-                        echo "DB_HOST length: \${#DB_HOST}"
-                        echo "DB_USER length: \${#DB_USER}"
-                        echo "DB_PASS length: \${#DB_PASS}"
-
-                        echo ">>> Starting new container"
-                        docker run -d \
-                            --name ebs_container \
-                            -p 5000:5000 \
-                            -e DB_HOST=$DB_HOST \
-                            -e DB_USER=$DB_USER \
-                            -e DB_PASSWORD=$DB_PASS \
-                            -e DB_NAME=studentdb \
-                            dheerengaud/${DOCKERHUB_REPO}:${IMAGE_TAG}
+                            echo ">>> Starting new container";
+                            docker run -d \
+                                --name ebs_container \
+                                -p 5000:5000 \
+                                -e DB_HOST=$DB_HOST \
+                                -e DB_USER=$DB_USER \
+                                -e DB_PASSWORD=$DB_PASS \
+                                -e DB_NAME=studentdb \
+                                dheerengaud/student_db_app:latest;
+                        '
                     """
                 }
             }
