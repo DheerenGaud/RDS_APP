@@ -27,8 +27,14 @@ pipeline {
 
                     sh """
                         echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                        docker build -t $DOCKERHUB_USER/$DOCKERHUB_REPO:$IMAGE_TAG .
-                        docker push $DOCKERHUB_USER/$DOCKERHUB_REPO:$IMAGE_TAG
+
+                        # Enable buildx
+                        docker buildx create --use || true
+
+                        # Build for AMD64 (EC2 architecture) + push
+                        docker buildx build --platform linux/amd64 \
+                          -t $DOCKERHUB_USER/$DOCKERHUB_REPO:$IMAGE_TAG \
+                          --push .
                     """
                 }
             }
