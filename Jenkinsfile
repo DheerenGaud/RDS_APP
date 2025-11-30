@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_REPO = "student_db_app"
         IMAGE_TAG = "latest"
-        PUBLIC_IP = "3.111.35.126"
+        PUBLIC_IP = "13.204.77.139"
     }
 
     stages {
